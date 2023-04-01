@@ -1,0 +1,2 @@
+[workspace]
+members=["./enums_arena", "./enums_arena_derive"]
