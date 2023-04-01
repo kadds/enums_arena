@@ -16,7 +16,7 @@
 //!     Close,
 //! }
 //!
-//! let mut arena = EventIdArena::default();
+//! let mut arena = EventIdArena::<u32, ()>::default();
 //! let id = arena.alloc_click(Click::default());
 //! arena.alloc_tick(1f32);
 //! arena.alloc_close();
@@ -47,7 +47,7 @@ pub mod test {
 
     #[test]
     pub fn test_enum() {
-        let mut vec = EnumIdArena::default();
+        let mut vec = EnumIdArena::<u8, ()>::default();
         let id = vec.alloc_value(5);
         assert_eq!(vec.get_cloned(id), Some(Enum::Value(5)));
 
@@ -62,5 +62,37 @@ pub mod test {
             vec.get_cloned(id),
             Some(Enum::Detail(Detail { a: 1, b: 0 }))
         );
+
+        assert_eq!(vec.len(), 4);
+    }
+
+    #[derive(EnumsIdArena, PartialEq, Eq, Debug)]
+    enum Node<'a, 'b> {
+        Name(&'a str),
+        Parent((&'a str, &'b str)),
+        None,
+    }
+
+    #[test]
+    pub fn test_lifetime() {
+        let mut vec = NodeIdArena::<u32, u8>::default();
+        let id = vec.alloc_name("s");
+        assert_eq!(vec.get_cloned(id), Some(Node::Name("s")));
+        vec.clear();
+        assert_eq!(vec.get_cloned(id), None)
+    }
+
+    #[derive(EnumsIdArena, PartialEq, Eq, Debug)]
+    enum NodeV2<'a, T> {
+        Name(&'a str),
+        Parent((&'a str, T)),
+        None,
+    }
+
+    #[test]
+    pub fn test_type() {
+        let mut vec = NodeV2IdArena::<i8, u32, u8>::default();
+        let id = vec.alloc_parent(("s", 1));
+        assert_eq!(vec.get_cloned(id), Some(NodeV2::Parent(("s", 1))));
     }
 }

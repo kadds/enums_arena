@@ -1,15 +1,11 @@
 [package]
-name = "enums_arena"
+name = "enums_arena_defines"
 version = "0.1.0"
 edition = "2021"
 license = "MIT"
 authors = ["itmyxyf@gmail.com"]
 description = "`enums_arena` is an arena that enums can be stored efficiently"
 
-
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# enums_arena_derive = "0.1"
-enums_arena_derive = {path="../enums_arena_derive"}
-enums_arena_defines = {path="../enums_arena_defines"}
