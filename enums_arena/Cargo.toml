@@ -10,6 +10,7 @@ description = "`enums_arena` is an arena that enums can be stored efficiently"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-# enums_arena_derive = "0.1"
-enums_arena_derive = {path="../enums_arena_derive"}
-enums_arena_defines = {path="../enums_arena_defines"}
+enums_arena_derive = "0.1"
+enums_arena_defines = "0.1"
+# enums_arena_derive = {path="../enums_arena_derive"}
+# enums_arena_defines = {path="../enums_arena_defines"}
