@@ -1,1 +1,1 @@
-`enums_arena` is an arena that enums can be stored efficiently
+Arena, fast and efficient storage enumeration

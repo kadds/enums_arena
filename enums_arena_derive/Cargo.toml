@@ -1,10 +1,11 @@
 [package]
 name = "enums_arena_derive"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 license = "MIT"
 authors = ["itmyxyf@gmail.com"]
 description = "`enums_arena` is an arena that enums can be stored efficiently"
+repository = "https://github.com/kadds/enums_arena"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -15,6 +16,5 @@ proc-macro = true
 syn = "2.0.12"
 quote = "1.0"
 convert_case = "0.6.0"
-num-traits = "0.2.15"
 enums_arena_defines = "0.1"
 # enums_arena_defines = {path="../enums_arena_defines"}

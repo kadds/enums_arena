@@ -35,8 +35,7 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
                     #i: Clone
                 })
             }
-            GenericParam::Const(_c) => {
-            }
+            GenericParam::Const(_c) => {}
         }
     }
     let user_generics = if generics2.params.is_empty() {
@@ -97,7 +96,7 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
             _ => {
                 return Err(syn::Error::new(
                     Span::call_site().into(),
-                    "This macro doesn't support multi-fields enum",
+                    "This macro doesn't support multi-fields in enums",
                 ))
             }
         };
@@ -125,10 +124,7 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
             match_body.push(quote! {
                 #enum_name_ident::#ident => {
                     Some(#name::#ident #user_generics(
-                        match self.#var_ident.get(ty_index.to_usize()).cloned() {
-                            Some(v) => v,
-                            None => return None,
-                        }
+                        self.#var_ident.get(ty_index.to_usize()).cloned()?
                     ))
                 },
             });
@@ -194,7 +190,7 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
     };
 
     let res = quote! {
-        #[derive(Clone, Copy)]
+        #[derive(Clone, Copy, Debug, Eq, PartialEq, ::std::hash::Hash)]
         #repr
         enum #enum_name_ident {
             #(#extends),*

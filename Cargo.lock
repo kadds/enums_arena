@@ -19,15 +19,11 @@ dependencies = [
 
 [[package]]
 name = "enums_arena"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
- "enums_arena_defines 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "enums_arena_derive 0.1.0",
+ "enums_arena_defines 0.1.0",
+ "enums_arena_derive 0.1.1",
 ]
-
-[[package]]
-name = "enums_arena_defines"
-version = "0.1.0"
 
 [[package]]
 name = "enums_arena_defines"
@@ -36,23 +32,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1bfee8474f3d12364ea8f7b2085f5635c3171309608d8f32da6a94b562f9775c"
 
 [[package]]
+name = "enums_arena_defines"
+version = "0.1.2"
+
+[[package]]
 name = "enums_arena_derive"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "918ba387376141b59c0bbc8422dd0609856049c8b2a78dc58248aedd6142632f"
+checksum = "dd8421fff104842e62478b903463ea1cdf3de4c3c481cc9a149dda4c6c1efd6b"
 dependencies = [
  "convert_case",
+ "enums_arena_defines 0.1.0",
+ "num-traits",
  "quote",
  "syn",
 ]
 
 [[package]]
 name = "enums_arena_derive"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "convert_case",
- "enums_arena_defines 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "num-traits",
+ "enums_arena_defines 0.1.0",
  "quote",
  "syn",
 ]

@@ -1,9 +1,11 @@
-pub trait Index: Copy {
+use std::{fmt::Debug, hash::Hash};
+
+pub trait Index: PartialEq + Eq + Copy + Debug + Hash {
     fn to_usize(self) -> usize;
     fn from_usize(s: usize) -> Self;
 }
 
-pub trait Generation: PartialEq + Eq + Copy {
+pub trait Generation: PartialEq + Eq + Copy + Debug + Hash {
     fn add(&mut self);
 }
 
