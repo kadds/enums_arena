@@ -113,6 +113,14 @@ pub mod mock {
             self.enums_vec_id_offset_of.push(real_index);
             (MockExtendEnum::Mock3, index, self.g)
         }
+
+        pub fn alloc(&mut self, val: Mock<'a, T>) -> MockId<I, G> {
+            match val {
+                Mock::Mock1 => self.alloc_mock1(),
+                Mock::Mock2(val) => self.alloc_mock2(val),
+                Mock::Mock3(val) => self.alloc_mock3(val),
+            }
+        }
     }
 
     /// Auto generated from [`Mock<T>`].
@@ -186,7 +194,7 @@ pub mod test {
     }
 
     #[derive(EnumsIdArena, PartialEq, Eq, Debug)]
-    enum Node<'a, 'b> {
+    pub enum Node<'a, 'b> {
         Name(&'a str),
         Parent((&'a str, &'b str)),
         None,
@@ -202,7 +210,7 @@ pub mod test {
     }
 
     #[derive(EnumsIdArena, PartialEq, Eq, Debug)]
-    enum NodeV2<'a, T> {
+    pub(crate) enum NodeV2<'a, T> {
         Name(&'a str),
         Parent((&'a str, T)),
         None,

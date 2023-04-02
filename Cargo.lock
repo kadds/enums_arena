@@ -3,12 +3,6 @@
 version = 3
 
 [[package]]
-name = "autocfg"
-version = "1.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d468802bab17cbc0cc575e9b053f41e72aa36bfa6b7f55e3529ffa43161b97fa"
-
-[[package]]
 name = "convert_case"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -19,59 +13,49 @@ dependencies = [
 
 [[package]]
 name = "enums_arena"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
- "enums_arena_defines 0.1.0",
- "enums_arena_derive 0.1.1",
+ "enums_arena_defines 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "enums_arena_derive 0.1.2",
 ]
 
 [[package]]
 name = "enums_arena_defines"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1bfee8474f3d12364ea8f7b2085f5635c3171309608d8f32da6a94b562f9775c"
+version = "0.1.2"
 
 [[package]]
 name = "enums_arena_defines"
 version = "0.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7ce2225d41ceb6b807f896444111c8689c1c915c549c029e44d9f1856e28a69d"
 
 [[package]]
 name = "enums_arena_derive"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd8421fff104842e62478b903463ea1cdf3de4c3c481cc9a149dda4c6c1efd6b"
+checksum = "11c4e26ec8983788e8bee141ab9405c6b792e25e612f96c9d943f7d61c807ca8"
 dependencies = [
  "convert_case",
- "enums_arena_defines 0.1.0",
- "num-traits",
+ "enums_arena_defines 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote",
  "syn",
 ]
 
 [[package]]
 name = "enums_arena_derive"
-version = "0.1.2"
+version = "0.1.3"
 dependencies = [
  "convert_case",
- "enums_arena_defines 0.1.0",
+ "enums_arena_defines 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "quote",
  "syn",
-]
-
-[[package]]
-name = "num-traits"
-version = "0.2.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "578ede34cf02f8924ab9447f50c28075b4d3e5b269972345e7e0372b38c6cdcd"
-dependencies = [
- "autocfg",
 ]
 
 [[package]]
 name = "proc-macro2"
-version = "1.0.54"
+version = "1.0.55"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e472a104799c74b514a57226160104aa483546de37e839ec50e3c2e41dd87534"
+checksum = "1d0dd4be24fcdcfeaa12a432d588dc59bbad6cad3510c67e74a2b6b2fc950564"
 dependencies = [
  "unicode-ident",
 ]
@@ -87,9 +71,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.12"
+version = "2.0.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79d9531f94112cfc3e4c8f5f02cb2b58f72c97b7efd85f70203cc6d8efda5927"
+checksum = "4c9da457c5285ac1f936ebd076af6dac17a61cfe7826f2076b4d015cf47bc8ec"
 dependencies = [
  "proc-macro2",
  "quote",

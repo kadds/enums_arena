@@ -18,6 +18,8 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
             ))
         }
     };
+    let vis_control = &ast.vis;
+
     let id_ident = format_ident!("{}Id", name);
     let generics = &ast.generics;
     let mut generics2 = generics.clone();
@@ -53,6 +55,7 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
     let mut impl_extends = Vec::new();
     let mut vec_body = Vec::new();
     let mut match_body = Vec::new();
+    let mut match_alloc_body = Vec::new();
     let mut clear_extends = Vec::new();
     let enum_name_ident = format_ident!("{}ExtendEnum", name);
 
@@ -121,6 +124,9 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
                     (#enum_name_ident::#ident, index, self.g)
                 }
             });
+            match_alloc_body.push(quote! {
+                #name::#ident(val) => self.#alloc_ident(val)
+            });
             match_body.push(quote! {
                 #enum_name_ident::#ident => {
                     Some(#name::#ident #user_generics(
@@ -136,6 +142,9 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
                     self.enums_vec_id_offset_of.push(HIDE_I::from_usize(0));
                     (#enum_name_ident::#ident, index, self.g)
                 }
+            });
+            match_alloc_body.push(quote! {
+                #name::#ident => self.#alloc_ident()
             });
             match_body.push(quote! {
                 #enum_name_ident::#ident => {
@@ -186,31 +195,40 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
             #(#clear_extends);*
         }
 
+        #[allow(unused)]
+        pub fn alloc(&mut self, val: #name #generics) -> #id_ident<HIDE_I, HIDE_G> {
+            match val {
+                #(#match_alloc_body),*
+            }
+        }
+
         #(#impl_extends)*
     };
 
     let res = quote! {
         #[derive(Clone, Copy, Debug, Eq, PartialEq, ::std::hash::Hash)]
         #repr
-        enum #enum_name_ident {
+        #vis_control enum #enum_name_ident {
             #(#extends),*
         }
 
         type #id_ident<I, G> = (#enum_name_ident, I, G);
 
         #[derive(Default)]
-        struct #arena_name_ident #new_generics {
+        #vis_control struct #arena_name_ident #new_generics {
             g: HIDE_G,
 
             enums_vec_id_offset_of: Vec<HIDE_I>,
             #(#vec_body),*
         }
+
         impl #new_generics #arena_name_ident #new_generics
         where HIDE_I: ::enums_arena_defines::Index,
             HIDE_G: ::enums_arena_defines::Generation,
         {
             #impl_part
         }
+
         impl #new_generics #arena_name_ident #new_generics
         where HIDE_I: ::enums_arena_defines::Index,
             HIDE_G: ::enums_arena_defines::Generation,
