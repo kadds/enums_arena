@@ -6,7 +6,7 @@ license = "MIT"
 authors = ["itmyxyf@gmail.com"]
 description = "`enums_arena` is an arena that enums can be stored efficiently"
 repository = "https://github.com/kadds/enums_arena"
-readme = "https://github.com/kadds/enums_arena/blob/main/README.md"
+readme = "../README.md"
 documentation = "https://docs.rs/enums_arena"
 keywords = ["arena"]
 
