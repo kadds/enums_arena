@@ -21,9 +21,9 @@
 //! arena.alloc_tick(1f32);
 //! arena.alloc_close();
 //!
-//! assert_eq!(arena.get_cloned(id), Some(Event::Click(Click::default())));
+//! assert_eq!(arena.get(id), Some(Event::Click(Click::default())));
 //! arena.clear();
-//! assert_eq!(arena.get_cloned(id), None);
+//! assert_eq!(arena.get(id), None);
 //! ```
 pub use enums_arena_derive::*;
 
@@ -114,12 +114,100 @@ pub mod mock {
             (MockExtendEnum::Mock3, index, self.g)
         }
 
+        /// Alloc value and return id
         pub fn alloc(&mut self, val: Mock<'a, T>) -> MockId<I, G> {
             match val {
                 Mock::Mock1 => self.alloc_mock1(),
                 Mock::Mock2(val) => self.alloc_mock2(val),
                 Mock::Mock3(val) => self.alloc_mock3(val),
             }
+        }
+
+        /// Update value for then given id
+        pub fn update(&mut self, id: MockId<I, G>, val: Mock<'a, T>) -> Option<()> {
+            let (ty, index, g) = id;
+            if g != self.g {
+                return None;
+            }
+            let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+
+            match val {
+                Mock::Mock1 => {
+                    if ty != MockExtendEnum::Mock1 {
+                        return None;
+                    }
+                },
+                Mock::Mock2(val) => {
+                    if ty != MockExtendEnum::Mock2 {
+                        return None;
+                    }
+                    self.mock2_vec[real_index] = val;
+                },
+                Mock::Mock3(val) => {
+                    if ty != MockExtendEnum::Mock3 {
+                        return None;
+                    }
+                    self.mock3_vec[real_index] = val;
+                },
+            }
+            Some(())
+        }
+
+        /// Get enum type from the id
+        pub fn ty(&self, id: MockId<I, G>) -> MockExtendEnum {
+            id.0
+        }
+
+        /// Auto generated from `Mock<T>::Mock2`.
+        pub fn get_mock2(&self, id: MockId<I, G>) -> Option<&T> {
+            let (ty, index, g) = id;
+            if g != self.g {
+                return None;
+            }
+            let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+            if let MockExtendEnum::Mock2 = ty {
+                return Some(&self.mock2_vec[real_index]);
+            }
+            None
+        }
+
+        /// Auto generated from `Mock<T>::Mock3`.
+        pub fn get_mock3(&self, id: MockId<I, G>) -> Option<&(i8, u64, &'a str)> {
+            let (ty, index, g) = id;
+            if g != self.g {
+                return None;
+            }
+            let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+            if let MockExtendEnum::Mock3 = ty {
+                return Some(&self.mock3_vec[real_index]);
+            }
+            None
+        }
+
+        /// Auto generated from `Mock<T>::Mock2`.
+        pub fn get_mock2_mut(&mut self, id: MockId<I, G>) -> Option<&mut T> {
+            let (ty, index, g) = id;
+            if g != self.g {
+                return None;
+            }
+            let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+            if let MockExtendEnum::Mock2 = ty {
+                return Some(&mut self.mock2_vec[real_index]);
+            }
+            None
+        }
+
+        /// Auto generated from `Mock<T>::Mock3`.
+        pub fn get_mock3_mut(&mut self, id: MockId<I, G>) -> Option<&mut (i8, u64, &'a str)> {
+            let (ty, index, g) = id;
+            if g != self.g {
+                return None;
+            }
+            let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+            if let MockExtendEnum::Mock3 = ty {
+                return Some(&mut self.mock3_vec[real_index]);
+            }
+            None
         }
     }
 
@@ -130,7 +218,7 @@ pub mod mock {
         G: enums_arena_defines::Generation,
         T: Clone,
     {
-        pub fn get_cloned(&self, id: MockId<I, G>) -> Option<Mock<T>> {
+        pub fn get(&self, id: MockId<I, G>) -> Option<Mock<T>> {
             let (ty, index, g) = id;
             if g != self.g {
                 return None;
@@ -174,23 +262,33 @@ pub mod test {
 
     #[test]
     pub fn test_enum() {
-        let mut vec = EnumIdArena::<u8, ()>::default();
-        let id = vec.alloc_value(5);
-        assert_eq!(vec.get_cloned(id), Some(Enum::Value(5)));
+        let mut arena = EnumIdArena::<u8, ()>::default();
 
-        let id = vec.alloc_none();
-        assert_eq!(vec.get_cloned(id), Some(Enum::None));
+        let id = arena.alloc_none();
+        assert_eq!(arena.get(id), Some(Enum::None));
 
-        let id = vec.alloc_list_ab((0, 1));
-        assert_eq!(vec.get_cloned(id), Some(Enum::ListAB((0, 1))));
+        let id = arena.alloc_list_ab((0, 1));
+        assert_eq!(arena.get(id), Some(Enum::ListAB((0, 1))));
 
-        let id = vec.alloc_detail(Detail { a: 1, b: 0 });
+        let id = arena.alloc_detail(Detail { a: 1, b: 0 });
         assert_eq!(
-            vec.get_cloned(id),
+            arena.get(id),
             Some(Enum::Detail(Detail { a: 1, b: 0 }))
         );
 
-        assert_eq!(vec.len(), 4);
+        assert_eq!(arena.len(), 3);
+
+
+        let id = arena.alloc_value(5);
+        assert_eq!(arena.get(id), Some(Enum::Value(5)));
+
+        assert_eq!(arena.update(id, Enum::Value(4)), Some(()));
+
+        assert_eq!(arena.get_value_mut(id), Some(&mut 4));
+
+        *arena.get_value_mut(id).unwrap() = 3;
+
+        assert_eq!(arena.get_value(id), Some(&3));
     }
 
     #[derive(EnumsIdArena, PartialEq, Eq, Debug)]
@@ -202,11 +300,12 @@ pub mod test {
 
     #[test]
     pub fn test_lifetime() {
-        let mut vec = NodeIdArena::<u32, u8>::default();
-        let id = vec.alloc_name("s");
-        assert_eq!(vec.get_cloned(id), Some(Node::Name("s")));
-        vec.clear();
-        assert_eq!(vec.get_cloned(id), None)
+        let mut arena = NodeIdArena::<u32, u8>::default();
+        let id = arena.alloc_name("s");
+        assert_eq!(arena.get(id), Some(Node::Name("s")));
+        arena.clear();
+        assert_eq!(arena.get(id), None);
+        assert_eq!(arena.update(id, Node::Name("name1")), None);
     }
 
     #[derive(EnumsIdArena, PartialEq, Eq, Debug)]
@@ -218,8 +317,8 @@ pub mod test {
 
     #[test]
     pub fn test_type() {
-        let mut vec = NodeV2IdArena::<i8, u32, u8>::default();
-        let id = vec.alloc_parent(("s", 1));
-        assert_eq!(vec.get_cloned(id), Some(NodeV2::Parent(("s", 1))));
+        let mut arena = NodeV2IdArena::<i8, u32, u8>::default();
+        let id = arena.alloc_parent(("s", 1));
+        assert_eq!(arena.get(id), Some(NodeV2::Parent(("s", 1))));
     }
 }

@@ -51,12 +51,15 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
         #(#generic_res),*
     };
 
-    let mut extends = Vec::new();
-    let mut impl_extends = Vec::new();
-    let mut vec_body = Vec::new();
-    let mut match_body = Vec::new();
-    let mut match_alloc_body = Vec::new();
-    let mut clear_extends = Vec::new();
+    let mut extend_enum_fields = Vec::new();
+    let mut vec_defines = Vec::new();
+    let mut get_cloned_match_body = Vec::new();
+    let mut alloc_match_body = Vec::new();
+    let mut clear_vecs = Vec::new();
+    let mut update_match_body = Vec::new();
+
+    let mut field_fn = Vec::new();
+
     let enum_name_ident = format_ident!("{}ExtendEnum", name);
 
     let n = variants.len() as u64;
@@ -104,55 +107,98 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
             }
         };
         let alloc_ident = format_ident!("alloc_{}", ident_case);
-        let var_ident = format_ident!("{}_vec", ident_case);
+        let vec_ident = format_ident!("{}_vec", ident_case);
+        let get_ident = format_ident!("get_{}", ident_case);
+        let get_mut_ident = format_ident!("get_{}_mut", ident_case);
 
-        extends.push(quote! {#ident});
+        extend_enum_fields.push(quote! {#ident});
         if !is_empty {
-            vec_body.push(quote! {
-                #var_ident: Vec<#ret_ty>
+            vec_defines.push(quote! {
+                #vec_ident: Vec<#ret_ty>
             });
-            clear_extends.push(quote! {
-                self.#var_ident.clear()
+            clear_vecs.push(quote! {
+                self.#vec_ident.clear()
             });
-            impl_extends.push(quote! {
+            alloc_match_body.push(quote! {
+                #name::#ident(val) => self.#alloc_ident(val)
+            });
+            get_cloned_match_body.push(quote! {
+                #enum_name_ident::#ident => {
+                    Some(#name::#ident #user_generics(
+                        self.#vec_ident.get(ty_index.to_usize()).cloned()?
+                    ))
+                }
+            });
+            update_match_body.push(quote! {
+                #name::#ident(val) => {
+                    if ty != #enum_name_ident::#ident {
+                        return None;
+                    }
+                    self.#vec_ident[real_index] = val;
+                }
+            });
+            field_fn.push(quote!{
                 #[allow(unused)]
                 pub fn #alloc_ident(&mut self, val: #ret_ty) -> #id_ident<HIDE_I, HIDE_G> {
                     let index = HIDE_I::from_usize(self.enums_vec_id_offset_of.len());
-                    let real_index = HIDE_I::from_usize(self.#var_ident.len());
-                    self.#var_ident.push(val);
+                    let real_index = HIDE_I::from_usize(self.#vec_ident.len());
+                    self.#vec_ident.push(val);
                     self.enums_vec_id_offset_of.push(real_index);
                     (#enum_name_ident::#ident, index, self.g)
                 }
-            });
-            match_alloc_body.push(quote! {
-                #name::#ident(val) => self.#alloc_ident(val)
-            });
-            match_body.push(quote! {
-                #enum_name_ident::#ident => {
-                    Some(#name::#ident #user_generics(
-                        self.#var_ident.get(ty_index.to_usize()).cloned()?
-                    ))
-                },
-            });
+
+                #[allow(unused)]
+                pub fn #get_ident(&self, id: #id_ident<HIDE_I, HIDE_G>) -> Option<& #ret_ty> {
+                    let (ty, index, g) = id;
+                    if g != self.g {
+                        return None;
+                    }
+                    let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+                    if let #enum_name_ident::#ident = ty {
+                        return Some(&self.#vec_ident[real_index]);
+                    }
+                    None
+                }
+
+                #[allow(unused)]
+                pub fn #get_mut_ident(&mut self, id: #id_ident<HIDE_I, HIDE_G>) -> Option<&mut #ret_ty> {
+                    let (ty, index, g) = id;
+                    if g != self.g {
+                        return None;
+                    }
+                    let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+                    if let #enum_name_ident::#ident = ty {
+                        return Some(&mut self.#vec_ident[real_index]);
+                    }
+                    None
+                }
+            })
         } else {
-            impl_extends.push(quote! {
+            alloc_match_body.push(quote! {
+                #name::#ident => self.#alloc_ident()
+            });
+            get_cloned_match_body.push(quote! {
+                #enum_name_ident::#ident => {
+                    match ty_index.to_usize() {
+                        0 => Some(#name::#ident #user_generics),
+                        _ => None,
+                    }
+                }
+            });
+            update_match_body.push(quote! {
+                #name::#ident => {
+                    if ty != #enum_name_ident::#ident {
+                        return None;
+                    }
+                }
+            });
+            field_fn.push(quote! {
                 #[allow(unused)]
                 pub fn #alloc_ident(&mut self) -> #id_ident<HIDE_I, HIDE_G> {
                     let index = HIDE_I::from_usize(self.enums_vec_id_offset_of.len());
                     self.enums_vec_id_offset_of.push(HIDE_I::from_usize(0));
                     (#enum_name_ident::#ident, index, self.g)
                 }
-            });
-            match_alloc_body.push(quote! {
-                #name::#ident => self.#alloc_ident()
-            });
-            match_body.push(quote! {
-                #enum_name_ident::#ident => {
-                    match ty_index.to_usize() {
-                        0 => Some(#name::#ident #user_generics),
-                        _ => None,
-                    }
-                },
             });
         }
     }
@@ -184,6 +230,12 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
 
     let arena_name_ident = format_ident!("{}IdArena", name);
     let impl_part = quote! {
+
+        #[allow(unused)]
+        pub fn ty(&self, id: #id_ident<HIDE_I, HIDE_G>) -> #enum_name_ident {
+            id.0
+        }
+
         #[allow(unused)]
         pub fn len(&self) -> usize {
             self.enums_vec_id_offset_of.len()
@@ -192,24 +244,38 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
         pub fn clear(&mut self) {
             self.g.add();
             self.enums_vec_id_offset_of.clear();
-            #(#clear_extends);*
+            #(#clear_vecs);*
         }
 
         #[allow(unused)]
         pub fn alloc(&mut self, val: #name #generics) -> #id_ident<HIDE_I, HIDE_G> {
             match val {
-                #(#match_alloc_body),*
+                #(#alloc_match_body),*
             }
         }
 
-        #(#impl_extends)*
+        #[allow(unused)]
+        pub fn update(&mut self, id: #id_ident<HIDE_I, HIDE_G>, val: #name #generics) -> Option<()> {
+            let (ty, index, g) = id;
+            if g != self.g {
+                return None;
+            }
+            let real_index = self.enums_vec_id_offset_of[index.to_usize()].to_usize();
+
+            match val {
+                #(#update_match_body),*
+            };
+            Some(())
+        }
+
+        #(#field_fn)*
     };
 
     let res = quote! {
         #[derive(Clone, Copy, Debug, Eq, PartialEq, ::std::hash::Hash)]
         #repr
         #vis_control enum #enum_name_ident {
-            #(#extends),*
+            #(#extend_enum_fields),*
         }
 
         type #id_ident<I, G> = (#enum_name_ident, I, G);
@@ -219,7 +285,7 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
             g: HIDE_G,
 
             enums_vec_id_offset_of: Vec<HIDE_I>,
-            #(#vec_body),*
+            #(#vec_defines),*
         }
 
         impl #new_generics #arena_name_ident #new_generics
@@ -235,14 +301,14 @@ pub fn enums_id_arena_to(ast: &DeriveInput) -> syn::Result<TokenStream> {
             #user_bound
         {
             #[allow(unused)]
-            pub fn get_cloned(&self, id: #id_ident<HIDE_I, HIDE_G>) -> Option<#name #user_generics> {
+            pub fn get(&self, id: #id_ident<HIDE_I, HIDE_G>) -> Option<#name #user_generics> {
                 let (ty, index, g) = id;
                 if g != self.g {
                     return None;
                 }
                 let ty_index = self.enums_vec_id_offset_of.get(index.to_usize())?.clone();
                 match ty {
-                    #(#match_body)*
+                    #(#get_cloned_match_body),*
                 }
             }
         }
